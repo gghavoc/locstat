@@ -48,7 +48,7 @@ namespace locstat
         { return this->_file_path.filename().string(); }
     
         [[nodiscard]]
-        uint64_t lines_of_code() const noexcept(true)
+        uint64_t code_lines() const noexcept(true)
         { return this->_code_lines; }
     
         [[nodiscard]]

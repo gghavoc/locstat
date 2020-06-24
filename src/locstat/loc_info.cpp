@@ -111,7 +111,7 @@ namespace locstat
         return false;
     }
     
-    loc_info::cmt_delim_set loc_info::get_block_delimiters() const noexcept(true)
+    loc_info::cmt_delim_set loc_info::block_delimiters() const noexcept(true)
     {
         cmt_delim_set block_delimiters{};
         if (this->has_block_delimiter()) {
@@ -124,7 +124,7 @@ namespace locstat
         return block_delimiters;
     }
     
-    loc_info::cmt_delim_set loc_info::get_single_line_delimiters() const noexcept(true)
+    loc_info::cmt_delim_set loc_info::single_line_delimiters() const noexcept(true)
     {
         if (this->has_block_delimiter()) {
             cmt_delim_set single_lines_delimiters{};

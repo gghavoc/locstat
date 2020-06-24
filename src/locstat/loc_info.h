@@ -89,10 +89,10 @@ namespace locstat
         bool has_block_delimiter() const noexcept(true);
         
         [[nodiscard]]
-        cmt_delim_set get_block_delimiters() const noexcept(true);
+        cmt_delim_set block_delimiters() const noexcept(true);
         
         [[nodiscard]]
-        cmt_delim_set get_single_line_delimiters() const noexcept(true);
+        cmt_delim_set single_line_delimiters() const noexcept(true);
         
         [[nodiscard]]
         static bool is_block_delimiter(const comment_delimiter_t &token) noexcept(true);
