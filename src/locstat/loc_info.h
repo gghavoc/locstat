@@ -76,24 +76,37 @@ namespace locstat
         { this->_comment_delimiters->insert(s); }
         
         void add_file_extension(const std::string &s) noexcept(true)
-        { this->_file_extensions->insert(s); }
+        {
+            this->_file_extensions->insert(s);
+            this->check_internal_extensions();
+        }
         
+        // Returns true if the argument exists in it set of extensions
+        // Returns false otherwise
         [[nodiscard]]
         bool contains_extension(const file_extension_t &ext) const noexcept(true);
-        
+    
+        // Returns true if the argument exists in it set of delimiters
+        // Returns false otherwise
         [[nodiscard]]
         bool contains_delimiter(const comment_delimiter_t &delim) const noexcept(true)
         { return this->_comment_delimiters->count(delim); }
-        
+    
+        // Returns true if the set of tokens has a valid block comment delimiter
+        // Returns false otherwise
         [[nodiscard]]
         bool has_block_delimiter() const noexcept(true);
-        
+    
+        // Returns all the block comment delimiter from the stored tokens
         [[nodiscard]]
         cmt_delim_set block_delimiters() const noexcept(true);
-        
+    
+        // Returns all the single line comment delimiter from the stored tokens
         [[nodiscard]]
         cmt_delim_set single_line_delimiters() const noexcept(true);
         
+        // Returns true if the argument has two tokens separated by '&&'
+        // Returns false otherwise
         [[nodiscard]]
         static bool is_block_delimiter(const comment_delimiter_t &token) noexcept(true);
     
@@ -101,11 +114,45 @@ namespace locstat
         [[maybe_unused]]
         static bool is_valid_extension(const std::string &s) noexcept(false);
         
+        // Returns the ending token of the argument (ex. returns '/*' from '/*&&*/')
         [[nodiscard]]
         static comment_delimiter_t extract_starting_delimiter(const comment_delimiter_t &s) noexcept(false);
         
+        // Returns the ending token of the argument (ex. returns '*/' from '/*&&*/')
         [[nodiscard]]
         static comment_delimiter_t extract_ending_delimiter(const comment_delimiter_t &s) noexcept(false);
+        
+        // Returns a set of tokens broken into multiple tokens
+        // Separates block comment tokens into two tokens (ex. '/*&&*/' into '/*' and '*/')
+        // Single line comment just gets added into the set
+        [[nodiscard]]
+        cmt_delim_set separate_tokens() const noexcept(true);
+    
+        // Returns a set of tokens broken block into multiple tokens
+        // Separates block comment tokens into two tokens (ex. '/*&&*/' into '/*' and '*/')
+        [[nodiscard]]
+        cmt_delim_set separate_block_tokens() const noexcept(true);
+        
+        // Returns the complement starting token of an ending token
+        // Returns an empty string if a complement isn't found
+        [[nodiscard]]
+        comment_delimiter_t get_starting_token_of(const comment_delimiter_t& token) const noexcept(true);
+        
+        // Returns the complement ending token of an starting token
+        // Returns an empty string if a complement isn't found
+        [[nodiscard]]
+        comment_delimiter_t get_ending_token_of(const comment_delimiter_t& token) const noexcept(true);
+        
+        // Returns a set of starting token of all block tokens
+        [[nodiscard]]
+        cmt_delim_set starting_tokens() const noexcept(true);
+        
+        // Returns a set of ending token of all block tokens
+        [[nodiscard]]
+        cmt_delim_set ending_tokens() const noexcept(true);
+        
+        // Returns true if token is single line, returns false otherwiser
+        bool is_single_line_token(const comment_delimiter_t &s) const noexcept(true);
 
 
     private:    // private helpers

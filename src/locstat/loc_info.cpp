@@ -82,7 +82,8 @@ namespace locstat
         return true;
     }
     
-    loc_info::file_extension_t loc_info::extract_extension(const std::string &s) noexcept(true)
+    loc_info::file_extension_t
+    loc_info::extract_extension(const std::string &s) noexcept(true)
     {
         std::string return_string{};
         for (uint64_t i{s.rfind('.') + 1}; i <= s.length(); ++i) {
@@ -111,11 +112,12 @@ namespace locstat
         return false;
     }
     
-    loc_info::cmt_delim_set loc_info::block_delimiters() const noexcept(true)
+    loc_info::cmt_delim_set
+    loc_info::block_delimiters() const noexcept(true)
     {
         cmt_delim_set block_delimiters{};
         if (this->has_block_delimiter()) {
-            for (auto& ref : *this->_comment_delimiters) {
+            for (auto &ref : *this->_comment_delimiters) {
                 if (loc_info::is_block_delimiter(ref)) {
                     block_delimiters.insert(ref);
                 }
@@ -124,7 +126,8 @@ namespace locstat
         return block_delimiters;
     }
     
-    loc_info::cmt_delim_set loc_info::single_line_delimiters() const noexcept(true)
+    loc_info::cmt_delim_set
+    loc_info::single_line_delimiters() const noexcept(true)
     {
         if (this->has_block_delimiter()) {
             cmt_delim_set single_lines_delimiters{};
@@ -140,7 +143,9 @@ namespace locstat
     
     bool loc_info::is_block_delimiter(const loc_info::comment_delimiter_t &token) noexcept(true)
     {
-        return (token.find("&&") != 0 && token.find("&&") != std::string::npos);
+        return (token.find("&&") != std::string::npos           // contains '&&'
+                && token.find("&&") != 0                        // does not start with '&&'
+                && token.find("&&") != (token.length() - 2));   // does not end with '&&'
     }
     
     loc_info::comment_delimiter_t
@@ -150,7 +155,7 @@ namespace locstat
         if (loc_info::is_block_delimiter(s)) {
             comment_delimiter_t::const_iterator iter{s.begin()};
             comment_delimiter_t::const_iterator end(s.begin() + s.find("&&"));
-            for (; iter != end ; ++iter) {
+            for (; iter != end; ++iter) {
                 if (!std::isspace(*iter)) {
                     starting.push_back(*iter);
                 }
@@ -178,6 +183,81 @@ namespace locstat
         }
         return ending;
     }
+    
+    loc_info::cmt_delim_set
+    loc_info::separate_tokens() const noexcept(true)
+    {
+        cmt_delim_set tokens{};
+        for (auto &ref : *this->_comment_delimiters) {
+            if (loc_info::is_block_delimiter(ref)) {
+                tokens.insert(loc_info::extract_starting_delimiter(ref));
+                tokens.insert(loc_info::extract_ending_delimiter(ref));
+            }
+            tokens.insert(ref);
+        }
+        return tokens;
+    }
+    
+    loc_info::cmt_delim_set
+    loc_info::separate_block_tokens() const noexcept(true)
+    {
+        cmt_delim_set tokens{};
+        for (auto &ref : this->block_delimiters()) {
+            if (loc_info::is_block_delimiter(ref)) {
+                tokens.insert(loc_info::extract_starting_delimiter(ref));
+                tokens.insert(loc_info::extract_ending_delimiter(ref));
+            }
+            tokens.insert(ref);
+        }
+        return tokens;
+    }
+    
+    loc_info::comment_delimiter_t
+    loc_info::get_starting_token_of(const loc_info::comment_delimiter_t &token) const noexcept(true)
+    {
+        comment_delimiter_t ending{};
+        for (auto &ref : this->block_delimiters()) {
+            if (ref.rfind(token) != comment_delimiter_t::npos && ref.rfind(token) != 0) {
+                ending = loc_info::extract_starting_delimiter(ref);
+                return ending;
+            }
+        }
+        return ending;
+    }
+    
+    loc_info::comment_delimiter_t
+    loc_info::get_ending_token_of(const loc_info::comment_delimiter_t &token) const noexcept(true)
+    {
+        comment_delimiter_t starting{};
+        for (auto &ref : this->block_delimiters()) {
+            if (ref.find(token) != comment_delimiter_t::npos && ref.find(token) != ref.length() - token.length()) {
+                starting = loc_info::extract_ending_delimiter(ref);
+                return starting;
+            }
+        }
+        return starting;
+    }
+    
+    loc_info::cmt_delim_set loc_info::starting_tokens() const noexcept(true)
+    {
+        cmt_delim_set s_tokens{};
+        for (auto &ref : this->block_delimiters()) {
+            s_tokens.insert(loc_info::extract_starting_delimiter(ref));
+        }
+        return s_tokens;
+    }
+    
+    loc_info::cmt_delim_set loc_info::ending_tokens() const noexcept(true)
+    {
+        cmt_delim_set e_tokens{};
+        for (auto &ref : this->block_delimiters()) {
+            e_tokens.insert(loc_info::extract_ending_delimiter(ref));
+        }
+        return e_tokens;
+    }
+    
+    bool loc_info::is_single_line_token(const comment_delimiter_t &s) const noexcept(true)
+    {
+        return this->single_line_delimiters().count(s);
+    }
 }
-
-

@@ -12,7 +12,8 @@ set(SRC_FILES
         src/locstat/exceptions/invalid_characters.cpp
         src/locstat/loc_counter.cpp
         src/locstat/exceptions/invalid_file.cpp
-        src/locstat/util/finally.cpp src/locstat/exceptions/invalid_input.cpp src/locstat/exceptions/invalid_input.h)
+        src/locstat/util/finally.cpp
+        src/locstat/exceptions/invalid_input.cpp)
 
 add_executable(locstat ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} stdc++fs)

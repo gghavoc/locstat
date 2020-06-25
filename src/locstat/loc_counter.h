@@ -13,16 +13,15 @@ namespace locstat
     {
     public:     // alias
         using path_t = std::filesystem::path;
-
+    
     public:     // public enum
-        enum class [[nodiscard]] LINE_CONTENT
+        enum class [[nodiscard]] DIRECTION : signed int
         {
-            CODE = 0,
-            SINGLE_LINE_COMMENT,
-            BLOCK_COMMENT,
-            BLANK,
+            LEFT = -1,
+            BOTH = 0,
+            RIGHT = 1,
         };
-        
+    
     public:
         loc_counter(path_t &&file_path, loc_info &&loc_info_, file_stats &OUT_file_stats)
                 : _path{std::move(file_path)},
@@ -39,13 +38,26 @@ namespace locstat
     public:     // operator overloading
         // For threading purposes
         void operator()() const noexcept(false);
-
+        
+        // finds a token from a line and iterates from a given direction
+        // to find if it only contains blank characters(space, newline, tab, null) from that token
+        // returns true if only contains spaces, return false otherwise
+        // returns false if the token doesn't exist
+        [[nodiscard]]
+        static bool is_only_blank_since_token(const std::string &token,
+                                              const std::string &line,
+                                              DIRECTION direction) noexcept(true);
+        
+        // Returns true if the argument has only a single line comment
+        [[nodiscard]]
+        bool ln_contains_only_single_line_cmt(const std::string &line) const noexcept(true);
+    
     private:    // private helper
         // Returns true if the passed file path is valid,
         // will throw an exception otherwise
         [[maybe_unused]]
         bool file_is_good() const noexcept(false);
-        
+    
     private:
         path_t _path{};
         loc_info _loc_info{};
