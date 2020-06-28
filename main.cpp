@@ -2,7 +2,6 @@
 #include <filesystem>
 #include <chrono>
 #include <iomanip>
-#include <fstream>
 #include "src/locstat/loc_info.h"
 #include "src/locstat/loc_counter.h"
 
@@ -19,6 +18,10 @@ int main(int argc, char *argv[])
             {"//", R"(/*&&*/)"},
             {".cpp"},
             "C++"};
+//    locstat::loc_info loc{
+//            {"#", R"("""&&""")"},
+//            {".py"},
+//            "Python"};
     std::filesystem::path p{"/home/clarence/Downloads/sample/"};
     uint64_t total_lines{};
     uint64_t total_loc{};

@@ -16,13 +16,13 @@ namespace locstat
                     code_lines{};
             loc_info::cmt_delim_vec separate_tokens{this->_loc_info.separate_tokens()};
             
-            std::istreambuf_iterator<char> start{file}, end{};
+            std::istreambuf_iterator<char> start{file};
             std::string line;
             std::map<uint64_t, loc_info::comment_delimiter_t> pos_map;
-            bool inside_block{}, has_code{}, has_comment{}, line_fully_read{true};
+            bool inside_block{}, has_code{}, has_comment{}, line_fully_read{true}, ok_to_break{false};
             loc_info::comment_delimiter_t token{};  // store current token
             uint64_t current_line{};
-            while (start != end) {
+            while (!ok_to_break) {
                 if (line_fully_read) {
                     ++current_line;
                     has_code = false;
@@ -99,8 +99,11 @@ namespace locstat
                     }
                     line.clear();
                 }
-                
                 pos_map.clear();
+                
+                if (*start == EOF && line_fully_read) {
+                    ok_to_break = true;
+                }
             }
             
             this->OUT_file_stats.set_code_lines(code_lines);
