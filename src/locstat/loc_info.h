@@ -2,6 +2,7 @@
 #define LOC_INFO_H
 #pragma once
 #include <set>
+#include <vector>
 #include <string>
 
 namespace locstat
@@ -9,8 +10,9 @@ namespace locstat
     class loc_info final
     {
     public:     // aliases
-        using cmt_delim_set = std::set< std::string >;
-        using file_ext_set = std::set< std::string >;
+        using cmt_delim_set = std::set<std::string>;
+        using cmt_delim_vec = std::vector<std::string>;
+        using file_ext_set = std::set<std::string>;
         using file_extension_t = std::string;
         using comment_delimiter_t = std::string;
         using language_t = std::string;
@@ -75,32 +77,28 @@ namespace locstat
         void add_comment_delimiter(const std::string &s) noexcept(true)
         { this->_comment_delimiters->insert(s); }
         
-        void add_file_extension(const std::string &s) noexcept(true)
-        {
-            this->_file_extensions->insert(s);
-            this->check_internal_extensions();
-        }
+        void add_file_extension(const std::string &s) noexcept(true);
         
         // Returns true if the argument exists in it set of extensions
         // Returns false otherwise
         [[nodiscard]]
         bool contains_extension(const file_extension_t &ext) const noexcept(true);
-    
+        
         // Returns true if the argument exists in it set of delimiters
         // Returns false otherwise
         [[nodiscard]]
         bool contains_delimiter(const comment_delimiter_t &delim) const noexcept(true)
         { return this->_comment_delimiters->count(delim); }
-    
+        
         // Returns true if the set of tokens has a valid block comment delimiter
         // Returns false otherwise
         [[nodiscard]]
         bool has_block_delimiter() const noexcept(true);
-    
+        
         // Returns all the block comment delimiter from the stored tokens
         [[nodiscard]]
         cmt_delim_set block_delimiters() const noexcept(true);
-    
+        
         // Returns all the single line comment delimiter from the stored tokens
         [[nodiscard]]
         cmt_delim_set single_line_delimiters() const noexcept(true);
@@ -109,7 +107,7 @@ namespace locstat
         // Returns false otherwise
         [[nodiscard]]
         static bool is_block_delimiter(const comment_delimiter_t &token) noexcept(true);
-    
+        
         // Checks if an extension doesn't have invalid characters
         [[maybe_unused]]
         static bool is_valid_extension(const std::string &s) noexcept(false);
@@ -126,22 +124,22 @@ namespace locstat
         // Separates block comment tokens into two tokens (ex. '/*&&*/' into '/*' and '*/')
         // Single line comment just gets added into the set
         [[nodiscard]]
-        cmt_delim_set separate_tokens() const noexcept(true);
-    
+        cmt_delim_vec separate_tokens() const noexcept(true);
+        
         // Returns a set of tokens broken block into multiple tokens
         // Separates block comment tokens into two tokens (ex. '/*&&*/' into '/*' and '*/')
         [[nodiscard]]
-        cmt_delim_set separate_block_tokens() const noexcept(true);
+        cmt_delim_vec separate_block_tokens() const noexcept(true);
         
         // Returns the complement starting token of an ending token
         // Returns an empty string if a complement isn't found
         [[nodiscard]]
-        comment_delimiter_t get_starting_token_of(const comment_delimiter_t& token) const noexcept(true);
+        comment_delimiter_t get_starting_token_of(const comment_delimiter_t &token) const noexcept(true);
         
         // Returns the complement ending token of an starting token
         // Returns an empty string if a complement isn't found
         [[nodiscard]]
-        comment_delimiter_t get_ending_token_of(const comment_delimiter_t& token) const noexcept(true);
+        comment_delimiter_t get_ending_token_of(const comment_delimiter_t &token) const noexcept(true);
         
         // Returns a set of starting token of all block tokens
         [[nodiscard]]
@@ -151,10 +149,14 @@ namespace locstat
         [[nodiscard]]
         cmt_delim_set ending_tokens() const noexcept(true);
         
-        // Returns true if token is single line, returns false otherwiser
+        
+        // Returns true if token is single line, returns false otherwise
+        [[nodiscard]]
         bool is_single_line_token(const comment_delimiter_t &s) const noexcept(true);
-
-
+        
+        // removes initial dots from internal set of extensions
+        void fix_extensions() noexcept(true);
+        
     private:    // private helpers
         // checks internal set if all elements are valid
         [[maybe_unused]]
@@ -164,7 +166,6 @@ namespace locstat
         [[nodiscard]]
         static file_extension_t extract_extension(const std::string &s) noexcept(true);
     
-
     
     private:    // private members
         cmt_delim_set *_comment_delimiters{};

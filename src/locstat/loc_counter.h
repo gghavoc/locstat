@@ -44,14 +44,24 @@ namespace locstat
         // returns true if only contains spaces, return false otherwise
         // returns false if the token doesn't exist
         [[nodiscard]]
-        static bool is_only_blank_since_token(const std::string &token,
-                                              const std::string &line,
-                                              DIRECTION direction) noexcept(true);
+        static bool is_blank_since_token(const std::string &token,
+                                         const std::string &line,
+                                         DIRECTION direction) noexcept(false);
         
         // Returns true if the argument has only a single line comment
         [[nodiscard]]
         bool ln_contains_only_single_line_cmt(const std::string &line) const noexcept(true);
-    
+        
+        // Returns true if printing character is not found
+        [[nodiscard]]
+        static bool isblank(const std::string &line) noexcept(true) {
+            return line.find_first_not_of(" \t\n\v\f\r") == loc_info::comment_delimiter_t::npos;
+        }
+        
+        static std::string substr_after_token(const std::string &token, const std::string &string) noexcept(true);
+        
+        static std::string substr_before_token(const std::string &token, const std::string &string) noexcept(true);
+        
     private:    // private helper
         // Returns true if the passed file path is valid,
         // will throw an exception otherwise

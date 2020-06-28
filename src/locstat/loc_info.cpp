@@ -11,19 +11,21 @@ namespace locstat
             : _comment_delimiters{new cmt_delim_set{delimiters}},
               _file_extensions{new file_ext_set{extensions}},
               _language{new language_t{lang}}
-    { this->check_internal_extensions(); }
+    {
+        this->fix_extensions();
+    }
     
     loc_info::loc_info() noexcept(true)
             : _comment_delimiters{new cmt_delim_set{}},
               _file_extensions{new file_ext_set{}},
               _language{new std::string{}}
-    {}
+    { this->fix_extensions(); }
     
     loc_info::loc_info(const loc_info &ref) noexcept(true)
             : _comment_delimiters{new cmt_delim_set{*ref._comment_delimiters}},
               _file_extensions{new file_ext_set{*ref._comment_delimiters}},
               _language{new language_t{*ref._language}}
-    {}
+    { this->fix_extensions(); }
     
     loc_info::loc_info(loc_info &&rvalue) noexcept(true)
             : _comment_delimiters{rvalue._comment_delimiters},
@@ -69,6 +71,11 @@ namespace locstat
         return *this;
     }
     
+    void loc_info::add_file_extension(const std::string &s) noexcept(true)
+    {
+        this->_file_extensions->insert(loc_info::extract_extension(s));
+    }
+    
     bool loc_info::contains_extension(const loc_info::file_extension_t &ext) const noexcept(true)
     { return this->_file_extensions->count(loc_info::extract_extension(ext)); }
     
@@ -96,8 +103,9 @@ namespace locstat
     
     bool loc_info::is_valid_extension(const std::string &s) noexcept(false)
     {
-        if (s.find_first_of("\t\\/:*\"<>|\n") != std::string::npos) {
-            throw invalid_characters{"invalid characters found in extension"};
+        if (s.find_first_of(".\t\\/:*\"<>|\n") != std::string::npos) {
+            throw invalid_characters{"invalid characters found in extension \n"
+                                     "these characters are not allowed: . < > * : \\ / | and space characters"};
         }
         return true;
     }
@@ -184,30 +192,30 @@ namespace locstat
         return ending;
     }
     
-    loc_info::cmt_delim_set
+    loc_info::cmt_delim_vec
     loc_info::separate_tokens() const noexcept(true)
     {
-        cmt_delim_set tokens{};
+        cmt_delim_vec tokens{};
         for (auto &ref : *this->_comment_delimiters) {
             if (loc_info::is_block_delimiter(ref)) {
-                tokens.insert(loc_info::extract_starting_delimiter(ref));
-                tokens.insert(loc_info::extract_ending_delimiter(ref));
+                tokens.push_back(loc_info::extract_starting_delimiter(ref));
+                tokens.push_back(loc_info::extract_ending_delimiter(ref));
+                continue;
             }
-            tokens.insert(ref);
+            tokens.push_back(ref);
         }
         return tokens;
     }
     
-    loc_info::cmt_delim_set
+    loc_info::cmt_delim_vec
     loc_info::separate_block_tokens() const noexcept(true)
     {
-        cmt_delim_set tokens{};
+        cmt_delim_vec tokens{};
         for (auto &ref : this->block_delimiters()) {
             if (loc_info::is_block_delimiter(ref)) {
-                tokens.insert(loc_info::extract_starting_delimiter(ref));
-                tokens.insert(loc_info::extract_ending_delimiter(ref));
+                tokens.push_back(loc_info::extract_starting_delimiter(ref));
+                tokens.push_back(loc_info::extract_ending_delimiter(ref));
             }
-            tokens.insert(ref);
         }
         return tokens;
     }
@@ -259,5 +267,15 @@ namespace locstat
     bool loc_info::is_single_line_token(const comment_delimiter_t &s) const noexcept(true)
     {
         return this->single_line_delimiters().count(s);
+    }
+    
+    void loc_info::fix_extensions() noexcept(true)
+    {
+        for (const auto &ref : *this->_file_extensions) {
+            if (ref.find('.') != comment_delimiter_t::npos) {
+                this->_file_extensions->erase(ref);
+                this->_file_extensions->insert(loc_info::extract_extension(ref));
+            }
+        }
     }
 }
