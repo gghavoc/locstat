@@ -10,6 +10,7 @@ namespace locstat
     void loc_counter::operator()() const noexcept(false)
     {
         std::ifstream file{this->_path.string()};
+        std::ofstream log{"parse.log", std::ios_base::trunc};
         if (file.is_open()) {
             uint64_t blank_lines{},
                     comment_lines{},
@@ -28,7 +29,7 @@ namespace locstat
                     has_code = false;
                     if (!inside_block) has_comment = false;
                     std::getline(file, line);
-                    std::cout << '[' <<std::setw(4)  << current_line << ']' << ": " << line << std::endl;
+                    log << '[' <<std::setw(4)  << current_line << ']' << ": " << line << std::endl;
                 }
                 
                 for (const auto &ref : separate_tokens) {
@@ -42,7 +43,7 @@ namespace locstat
                     loc_info::comment_delimiter_t ending_token{this->_loc_info.get_ending_token_of(token)};
                     if (line.find(ending_token)
                         != loc_info::comment_delimiter_t::npos) {
-                        std::cout << "in block: " << line << std::endl;
+                        log << "in block: " << line << std::endl;
                         line = loc_counter::substr_after_token(ending_token, line);
                         inside_block = false;
                         has_comment = true;
@@ -55,46 +56,46 @@ namespace locstat
                         line_fully_read = true;
                     } else if (!pos_map.empty()) {
                         token = pos_map.begin()->second;
-                        std::cout << "token: " << token << std::endl;
+                        log << "token: " << token << std::endl;
                         has_comment = true;
                         if (loc_counter::is_blank_since_token(token, line, DIRECTION::LEFT)) {
                             line_fully_read = true;
-                            std::cout << "found comment: " << line << std::endl;
+                            log << "found comment: " << line << std::endl;
                         } else {
                             has_code = true;
                         }
                         
                         if (!this->_loc_info.is_single_line_token(token)) {
-                            std::cout << "found block token: " << token << std::endl;
+                            log << "found block token: " << token << std::endl;
                             inside_block = true;
                             line_fully_read = false;
                             line = loc_counter::substr_after_token(token, line);
                         } else {
-                            std::cout << "found single line token: " << token << std::endl;
+                            log << "found single line token: " << token << std::endl;
                             line = loc_counter::substr_before_token(token, line);
                         }
     
                     } else {
                         has_code = true;
                         line_fully_read = true;
-                        std::cout << "code: " << line << std::endl;
+                        log << "code: " << line << std::endl;
                     }
                 }
-                std::cout << std::left << std::setw(20) << "line fully read: " << line_fully_read << std::endl;
-                std::cout << std::left << std::setw(20) << "has code: " << has_code << std::endl;
-                std::cout << std::left << std::setw(20) << "has comment: " << has_comment << std::endl;
-                std::cout << std::left << std::setw(20) << "inside block: " << inside_block << std::endl;
+                log << std::left << std::setw(20) << "line fully read: " << line_fully_read << std::endl;
+                log << std::left << std::setw(20) << "has code: " << has_code << std::endl;
+                log << std::left << std::setw(20) << "has comment: " << has_comment << std::endl;
+                log << std::left << std::setw(20) << "inside block: " << inside_block << std::endl;
                 
                 if (line_fully_read) {
                     if (!has_code && !has_comment) {
                         ++blank_lines;
                         line_fully_read = true;
-                        std::cout << "+++++++ incremented blank lines" << std::endl;
+                        log << "+++++++ incremented blank lines" << std::endl;
                     } else if (has_comment && !has_code) {
-                        std::cout << "+++++++ incremented comment lines" << std::endl;
+                        log << "+++++++ incremented comment lines" << std::endl;
                         ++comment_lines;
                     } else if (has_code) {
-                        std::cout << "+++++++ incremented code lines" << std::endl;
+                        log << "+++++++ incremented code lines" << std::endl;
                         ++code_lines;
                     }
                     line.clear();
@@ -105,7 +106,7 @@ namespace locstat
                     ok_to_break = true;
                 }
             }
-            
+            log.close();
             this->OUT_file_stats.set_code_lines(code_lines);
             this->OUT_file_stats.set_comment_lines(comment_lines);
             this->OUT_file_stats.set_blank_lines(blank_lines);
